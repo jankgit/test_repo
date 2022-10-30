@@ -8,6 +8,9 @@ date: "`r Sys.Date()`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+git@github.com:jankgit/test_repo.git
+neu
+
 ## R Markdown
 
 1. Create in GitHub new repo
