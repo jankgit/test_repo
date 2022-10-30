@@ -1,0 +1,32 @@
+---
+title: "test_file_MyDatei"
+output: pdf_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+1. Create in GitHub new repo
+2. Create new project in R-Studio (Version-Control)
+3 Choose Git-Tab in the Enviroment-Window and click on the Elements
+4 Click "Commit"
+5 Make Comments 
+6 Click the Push-Button
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
