@@ -1,0 +1,272 @@
+
+
+# Aufgabe 1
+Diese Aufgabe basiert auf dem airquality-Datensatz aus dem R-Paket datasets (R Core Team 2021).
+Machen Sie sich als Erstes mit dem Datensatz vertraut (siehe ?airquality).
+```{r}
+?airquality
+head(airquality)
+str(airquality)
+```
+
+## a)
+a) Gegeben ist folgender Code, wobei die angewandten Funktionen hauptsächlich aus dem dplyr-Paket
+(Wickham et al. 2022) stammen.
+
+
+
+```{r}
+# Oroginal-Code
+air_filter <- filter(airquality, Month %in% c(7:9), Temp >= 80)
+air_select <- select(air_filter, Solar.R, Wind, Temp, Month, Day)
+air_mutate <- mutate(air_select, Temp_C = (Temp - 32)*(5/9))
+air_arrange <- arrange(air_mutate, desc(Temp_C))
+```
+
+
+Schreiben Sie den Code um, indem Sie den Pipe-Operator nutzen, ohne die Zwischenschritte in separate
+Variablen zu schreiben. Benennen Sie das insgesamte Ergebnis air_Temp_C.
+
+```{r}
+# Umgeschriebener Code it der Umwandlung der Temp per Division durch 1.8
+air_Temp_C <- 
+  airquality %>% 
+  filter(Month %in% c(7:9), Temp >= 80) %>%
+  select(Solar.R, Wind, Temp, Month, Day) %>%
+  mutate(Temp_C = (Temp - 32)/1.8) %>%  
+  arrange(desc(Temp_C))
+```
+
+b) Nachdem Sie den Code in a) umgeschrieben haben, beschreiben Sie, welche Werte air_Temp_C enthält
+und wie air_Temp_C erzeugt wurde. Achten Sie dabei darauf, die Variablen im Sachkontext zu
+gebrauchen.
+```{r}
+# Vergleich der beiden Ausgaben
+identical(air_arrange, air_Temp_C)
+
+# Code mit der geünschten Umwandlung von °F in °C mittels der Formel 
+# (Temp - 32)/1.8 liefert keinen identischen Wert. Es liegt daran, dass zwar der
+# gleiche Variablen-Typ generiert wird, die hinteren Nachkommazahlen jedoch
+# voneinander abweichen. Hier schweint R auch bisschen zu flunkren, 1/9 ist ja 
+# mathematisch 0,111 (Periode!). Die Genauigkeit des Datentyps Doubles wird hier
+# nur vorgegaukelt. Hier helfen auch keine Tricks mit as.double(5)/as.double(9).
+# Es wird hier vermuttlich auf einen anderen Speicherplatz zugegriffen, wobei 
+# nur die ersten 16 Stellen genau ausgegeben werden.
+
+typeof(air_Temp_C$Temp_C)
+typeof(air_arrange$Temp_C)
+
+# Die Lösung in den hinteren Nachkomma-Stellen.
+formatC(air_Temp_C$Temp_C[1], digits = 64)
+formatC(air_arrange$Temp_C[1], digits = 64)
+```
+
+
+c) Nach Durchführung der Codezeilen 1–2 des in a) angegebenen Codes wird air_select erhalten:
+1 head(air_select)
+## Solar.R Wind Temp Month Day
+## 1 269 4.1 84 7 1
+## 2 248 9.2 85 7 2
+## 3 236 9.2 81 7 3
+## 4 101 10.9 84 7 4
+## 5 175 4.6 83 7 5
+## 6 314 10.9 83 7 6
+
+Wie kann der Aufruf der Funktion select() in der 2. Codezeile verkürzt werden, sodass der gleiche
+Rückgabewert für air_select erhalten wird? Beschreiben Sie dies kurz in eigenen Worten und setzen
+Sie dies um! Hinweise: Es ist nicht der Pipe-Operator gemeint! Inklusion vs. Exklusion.
+
+```{r}
+airquality %>% 
+  filter(Month %in% c(7:9), Temp >= 80) %>%
+  select(2:6) %>%
+  mutate(Temp_C = (Temp - 32)/1.8) %>%  
+  arrange(desc(Temp_C))
+#  Durch kann direkt die Spalten zugreifen. 
+# Statt die Namen explizit zu schreiben könnte man auch 2 bis 6 auswählen 
+# select(2:6) (nklsuion)
+# ALternativ könnte man auch die Spalte 1 von der weiteren Bearbeitung 
+# ausschließen durch select(!1) (Exklusion)
+```
+
+
+d) Was ist der Unterschied zwischen den Funktionen dplyr::mutate() und dplyr::transmute() hin-
+sichtlich des erhaltenen Ergebnisses? Beschreiben Sie dies in eigenen Worten und wenden Sie mutate()
+und transmute() beispielhaft auf air_Temp_C an, um den Unterschied zu illustrieren.
+
+mutate behält die ursprünglcihen Spalten, trasnmute behäkt nur die neu berechneten / entstandenen Spalten
+
+
+
+# Aufgabe 2
+Beschreiben und erklären Sie in eigenen Worten, wie grundsätzlich Plots, die auf dem R-Paket ggplot2 (Wickham 2016) basieren, erzeugt werden. Verwenden Sie dabei u.a. die Begriffe Syntax und Semantik und gehen Sie u.a. auf 
+
+
+ggplot ist ein R-Paket, das auf der Grammar of Graphics von Wilkinson & Co basiert (Wickham 2010) und dient einer optimieren Beschreibung von grafischen Ausgaben in R.
+Der Aufruf erfolgt über die Funktion ggplot(), wobei in den Klammern direkt die ästhetischen Eigenschaften übergeben werden können. Diese können aber alternativ hinter dem verbindenden Plus-Zeichen eingegeben werden, wobei das Plus-Zeichen nie am Anfang der Zeile stehen darf.
+Diese Übergabe erfolgt mittels der Funktion aes(), in der grundlegenden Eingenschaften wie z.B.  welche Wert sollten für die x-Achse und für die y-Ache genommen werden.
+
+Mit weiteren Eigenschaften wie z.B. die geometrischen Eigenschaften des Plots wie z.B: welche Objekte dargestellt werden sollen, dabei ist die Familie geom_ besonders hervorzuheben, sie biete als Darstellungsobjekte z.B. plot, line, bar, boxplot. Innerhalb dieser Objekte können dann auch weitere Objekt-spezifische Attribute ergänzt werden wie z.B. Achsenabstände, Outliers, etc. 
+
+Die Syntax gibt die Struktur des Codes an, bei ggpolt ist das z.B. die richtige Anordnung der Begriffe. So darf das +-Zeichen nicht am Anfang der Zeile stehen. Die Semantik hingegen gibt hier an, welche Attribute angegeben werden dürfen. So können z.B. nimmt coord_cartesian nur x_lim und nicht xlim an. 
+
+
+Wickham, Hadley. 2010. A Layered Grammar of Graphics
+https://byrneslab.net/classes/biol607/readings/wickham_layered-grammar.pdf    
+Journal of Computational and Graphical Statistics, Volume 19, Number 1, Pages 3–28
+
+
+# Aufgabe 3
+## a Filtern 
+
+```{r}
+
+air_season <- airquality %>% 
+  filter(Wind > 5 & Wind <18) %>%
+  select(3:6) %>%
+  mutate(Season = factor(case_when(
+     Month %in% 3:5 ~ "Spring",
+     Month %in% 6:8 ~ "Summer",
+     Month %in% 9:11 ~ "Autumn",
+     Month %in% c(1,2,12) ~ "Winter"
+  )))
+
+air_season1 <- airquality %>% 
+  filter(Wind > 5 & Wind <18) %>%
+  select(3:6) %>%
+  mutate(Season = 
+    factor(
+      case_when(
+        Month %in% 3:5 ~ 1,
+        Month %in% 6:8 ~ 2,
+        Month %in% 9:11 ~ 3,
+        Month %in% c(1,2,12) ~ 4
+      ),
+      levels=c("Spring", "Summer", "Autumn", "Winter")
+    )
+  )
+
+```
+
+## b Wrap
+
+```{r}
+
+ggplot(air_season) +
+  aes(x=Temp, y=Wind) +
+  geom_point() +
+  labs(x="Temperature [°F]", y="Windspeed [mph]") +
+  facet_wrap( ~ Season)
+```
+
+## c Wrap mit Farbe und Legende
+```{r}
+
+ggplot(air_season) +
+  aes(x=Temp, y=Wind, color=Month) +
+  geom_point() +
+  labs(x="Temperature [°F]", y="Windspeed [mph]") +
+  facet_wrap( ~ Season) 
+```
+
+# d Grid pro Monat
+
+```{r}
+ggplot(air_season) +
+  aes(x=Temp, y=Wind) +
+  geom_point() +
+  labs(x="Temperature [°F]", y="Windspeed [mph]") +
+  facet_grid( ~ Month) 
+```
+
+# e Wrap untereinander
+
+```{r}
+ggplot(air_season) +
+  aes(x=Temp, y=Wind, color=Month) +
+  geom_point() +
+  labs(x="Temperature [°F]", y="Windspeed [mph]") +
+  facet_wrap( ~ Season, nrow=3)
+
+```
+
+# f Diskrete Legende
+Die Legenden der Abbildungen zeigen eine kontinuierliche Farbskala für den Monat an, weil der Monat von ggplot2 offensichtlich als eine stetige Variable interpretiert wird. 
+Dies ist dies nicht korrekt, weil Monate diskrete Werte darstellen.
+Die Variable müsste in eine diskrete Variable umformatiert werden. Am einfachsten geht das mit der Umwandlung in eine kategorille Variabel (as. factor).
+
+Was beispielhaft im Aufgabenteil 3c) wie folgt aussehen würde:
+
+```{r}
+ggplot(air_season) +
+  aes(x=Temp, y=Wind, color=as.factor(Month)) +
+  geom_point() +
+  labs(x="Temperature [°F]", y="Windspeed [mph]") +
+  facet_wrap( ~ Season, nrow=3)
+```
+
+# g Regressionsgeraden
+´
+```{r}
+ggplot(air_season) +
+  aes(x=Temp, y=Wind, color=Month) +
+  geom_point() +
+  labs(x="Temperature [°F]", y="Windspeed [mph]") +
+  geom_smooth(method="lm") +
+  facet_wrap( ~ Season, nrow=3) 
+```
+
+# h Ausreißer
+Um die Ausreißer graphisch zu ermitteln bietes sich der Boxplot an. in ggplot lautet der Aufruf dann:
+```{r}
+ggplot(airquality) +
+  aes(x=Wind) +
+  geom_boxplot()
+```
+# h Ausreißer
+
+Ein Boxplot besteht aus einem Rechteck in dem die mittleren 50% der Daten enthalten sind. Dabei werden die Daten zuerst der Größe nach sortiert und dann is sog. Quartile eingeteilt. In jedem Quartil befiden sich 25% der (nach der Größe geordneten) Werte . Die oberen Quartil befindet sich oberhalb des Rechtecks, das untere unterhalb des Rechtecks. Der Abstand zwischen der oberen 25%-Grenze und der unteren 25%-Grenze wird als Interquartilsabstand (IQR) bezeichnet. Die Mitte bildet der Median, so dass 50% der Werte oberhalb des Medians liegen, 50% darunter. Die Ausreißer sind Werte, die mehr als das 1,5-fache der Boxlänge oberhalb des oberen Randes bzw. unterhalb des unteren Randes liegen. Sie werden üblicherweise mit Kreisen gekennzeichnet.
+
+
+Visuelle Analyse der Ausreißer (es wurde keine konkrete Berechnung von 75%-Perzentil +1,5*IQR verlangt):
+Es handelt sich um 3 Werte, die oberhalb von 17,5 liegen:
+
+```{r}
+airquality %>%
+  filter(Wind > 17.5) %>%
+  select(Wind)
+```
+
+# i Mediane
+Mittels des Codes wird der Median der Strahlungsintensität der Sonne in den Monaten Juni, Juli und September (jeweils separat ausgegeben). Dabei werden allerdings nur diejenigen Tage betrachtet, an denen die Windgeschwindigkeit unterhalb 19.1 lag.
+
+```{r}
+airquality %>%
+  filter(Wind <= 19.1 & Month %in% c(6,7,9)) %>%  
+  # Es wird wie oben gefiltert nach Juni, juli, September und nur Tage 
+  # mit Wind unter oder gleich 19.2
+  group_by(Month) %>%  # nach Monaten gruppieren
+  summarize(median(Solar.R)) %>%  # und den Median für jede Gruppe berechnen
+  as_tibble() # als Tibble ausgeben
+
+```
+
+
+# Aufgabe 4
+Als Zwischenschritt muss mittels „lm“ ein (lineares) Regressionsmodell erzeugt werden für den Zusammenhang zw.  Windgeschw. und Temperatur. 
+```{r}
+plot(airquality$Wind, airquality$Ozone, xlab = "Windgeschwindigkeit", ylab = "Temperatur")
+regresGerade <- lm(Ozone ~ Wind, data = airquality)
+lines(airquality$Wind, regresGerade, col = "blue")
+```
+
+
+Leider wird hier als Fehler ausgegeben
+    Fehler in xy.coords(x, y) : Längen von 'x' und 'y' unterscheiden sich
+Vermutlich müsste man zuerst NA-Werte eliminieren
+
+
+## b Latex für Regressiongerade
+
+Man benötigt die Steigung und den y-Achsenabschnitt. Diese werden mittels des Regressionsmodells berechnet.
+$Temp = a \cdot Wind + b$
